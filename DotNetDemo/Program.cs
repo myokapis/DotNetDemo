@@ -4,31 +4,26 @@ using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 var environment = builder.Environment;
 var environmentName = environment.EnvironmentName.ToLower();
+var secretsPath = $"{environmentName}/ttp/config";
+var appName = AppDomain.CurrentDomain.FriendlyName;
 
 // setup a bootstrap logger to capture output until the real logger is configured
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
 
-// make our own configuration provider so that we can choose the precedence of sources
-var config = new ConfigurationBuilder()
-    .SetBasePath(environment.ContentRootPath)
-    .AddJsonFile("appSettings.json", true, true)
-    .AddSecretsManager(configurator: cfg =>
+// add configuration sources in the order or precedence with higher precedence last
+builder.Configuration
+    .AddSecretsManager(configurator: options =>
     {
-        cfg.SecretFilter = item => item.Name == ($"{environmentName}/quad-worldpay/config");
-        // TODO: tweak the key name to match that in the appSettings.development.json file
-        cfg.KeyGenerator = (secret, name) => "Settings";
-        cfg.PollingInterval = TimeSpan.FromMinutes(15);
+        options.KeyGenerator = (entry, key) => key.Replace(secretsPath, appName);
+        options.PollingInterval = TimeSpan.FromMinutes(15);
+        options.SecretFilter = entry => entry.Name.StartsWith(secretsPath);
     })
     .AddEnvironmentVariables()
-    .AddJsonFile($"appSettings.{environmentName}.json", true, true)
-    .Build();
+    .AddJsonFile($"appSettings.{environmentName}.json", true, true);
 
-// Add services to the container.
-builder.Services.Configure<DemoConfig>(config.GetSection("Demo"));
-// TODO: load app config as a section from the secrets
-// TODO: verify the precedence of the sources
+builder.Services.Configure<DemoConfig>(builder.Configuration.GetSection(appName));
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -41,17 +36,18 @@ builder.Host.UseSerilog(
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // handy UI for testing endpoints in development
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 else
 {
+    // redirect all errors to a safe handler when not in development
     app.UseExceptionHandler("/Error");
 }
-
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
