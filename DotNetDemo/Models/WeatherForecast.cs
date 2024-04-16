@@ -1,4 +1,4 @@
-namespace DotNetDemo
+namespace DotNetDemo.Models
 {
     public class WeatherForecast
     {

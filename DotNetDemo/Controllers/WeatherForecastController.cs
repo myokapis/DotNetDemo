@@ -1,4 +1,6 @@
 using DotNetDemo.Configs;
+using DotNetDemo.Models;
+using DotNetDemo.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -6,32 +8,15 @@ namespace DotNetDemo.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    public class WeatherForecastController(IOptions<DemoConfig> options, IWeatherService weatherService) : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
-
-        private readonly DemoConfig demoConfig;
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(IOptions<DemoConfig> options, ILogger<WeatherForecastController> logger)
-        {
-            demoConfig = options.Value;
-            _logger = logger;
-        }
+        private readonly DemoConfig demoConfig = options.Value;
+        private readonly IWeatherService weatherService = weatherService;
 
         [HttpGet("GetWeatherForecast", Name = "GetWeatherForecast")]
-        public IEnumerable<WeatherForecast> GetWeatherForecast()
+        public IEnumerable<WeatherForecast> GetWeatherForecast(int forecastDays = 5)
         {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+            return weatherService.WeatherForecast(forecastDays);
         }
 
         /// <summary>
@@ -41,7 +26,6 @@ namespace DotNetDemo.Controllers
         [HttpGet("GetConfigs", Name = "GetConfigs")]
         public IActionResult GetConfigs()
         {
- 
             return Ok(demoConfig);
         }
 

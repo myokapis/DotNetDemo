@@ -1,4 +1,5 @@
 using DotNetDemo.Configs;
+using DotNetDemo.Services;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,7 +13,7 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
     .CreateBootstrapLogger();
 
-// add configuration sources in the order or precedence with higher precedence last
+// add configuration sources in the order of precedence with higher precedence last
 builder.Configuration
     .AddSecretsManager(configurator: options =>
     {
@@ -24,11 +25,15 @@ builder.Configuration
     .AddJsonFile($"appSettings.{environmentName}.json", true, true);
 
 builder.Services.Configure<DemoConfig>(builder.Configuration.GetSection(appName));
-
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services
+    .AddEndpointsApiExplorer()
+    .AddSwaggerGen();
+
+builder.Services
+    .AddTransient<IWeatherService, WeatherService>();
 
 // enable logging as defined in the configuration
 builder.Host.UseSerilog(
