@@ -1,8 +1,7 @@
-using Xunit;
 using FluentAssertions;
 using DotNetDemo.Services;
 
-namespace DotNetDemo.Tests
+namespace DotNetDemo.Tests.Services
 {
     public class WeatherServiceTests
     {
