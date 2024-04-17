@@ -1,11 +1,14 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Serilog;
+using Sharpbrake.Client;
 
 namespace DotNetDemo.Controllers
 {
     public class ErrorController : Controller
     {
+
         [Route("/Error")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult Index([FromServices] IHostEnvironment hostEnvironment)

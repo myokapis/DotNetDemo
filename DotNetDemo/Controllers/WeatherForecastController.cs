@@ -3,6 +3,7 @@ using DotNetDemo.Models;
 using DotNetDemo.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Sharpbrake.Client;
 
 namespace DotNetDemo.Controllers
 {
@@ -40,6 +41,12 @@ namespace DotNetDemo.Controllers
         public IActionResult GetAnError()
         {
             throw new Exception("Boink!");
+        }
+
+        [HttpGet("GetHealth", Name = "GetHealth")]
+        public IActionResult GetHealth()
+        {
+            return StatusCode(200, "I'm working harder than you are!");
         }
     }
 }
